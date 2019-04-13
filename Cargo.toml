@@ -1,0 +1,7 @@
+[package]
+name = "chip8_emulator"
+version = "0.1.0"
+authors = ["Joshua Suskalo <joshua@suskalo.org>"]
+edition = "2018"
+
+[dependencies]
