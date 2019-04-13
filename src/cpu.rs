@@ -2,6 +2,8 @@ use crate::memory;
 use crate::memory::Memory;
 use crate::io;
 use crate::io::Display;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 const PROGRAM_START: usize = 0x200;
 const ETI_600_START: usize = 0x600;
@@ -18,12 +20,12 @@ struct Registers {
 
 pub struct Cpu {
     ram: Memory,
-    display: Display,
+    display: Rc<RefCell<Display>>,
     registers: Registers,
 }
 
 impl Cpu {
-    pub fn new(ram: Memory, display: Display) -> Cpu {
+    pub fn new(ram: Memory, display: Rc<RefCell<Display>>) -> Cpu {
         Cpu {
             ram,
             display,
