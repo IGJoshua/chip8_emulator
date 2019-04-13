@@ -18,15 +18,21 @@ impl Display {
         }
     }
 
-    pub fn draw_sprite(&mut self, point: Point, sprite: Sprite) {
+    pub fn draw_sprite(&mut self, point: Point, sprite: Sprite) -> bool {
         assert!(point.1 + 5 < DISPLAY_HEIGHT as u8);
         assert!(point.0 < DISPLAY_WIDTH as u8 * 8);
+
+        let mut res = false;
 
         let enumeration = sprite.rows.iter().enumerate();
         if point.0 % 8 == 0 {
             let col = point.0 / 8;
             for (index, row) in enumeration {
-                self.bytes[point.1 as usize + index][col as usize] ^= *row;
+                let byte = &mut self.bytes[point.1 as usize + index][col as usize];
+                if *byte & row != 0 {
+                    res = true;
+                }
+                *byte ^= *row;
             }
         } else {
             let col = point.0 / 8;
@@ -35,10 +41,21 @@ impl Display {
             for (index, row) in enumeration {
                 let first_byte = *row >> first_offset;
                 let last_byte = *row << last_offset;
-                self.bytes[point.1 as usize + index][col as usize] ^= first_byte;
-                self.bytes[point.1 as usize + index][col as usize + 1] ^= last_byte;
+
+                let first_ref = &mut self.bytes[point.1 as usize + index][col as usize];
+                if *first_ref & first_byte != 0 {
+                    res = true;
+                }
+                *first_ref ^= first_byte;
+
+                let last_ref = &mut self.bytes[point.1 as usize + index][col as usize + 1];
+                if *last_ref & last_byte != 0 {
+                    res = true;
+                }
+                *last_ref ^= last_byte;
             }
         }
+        res
     }
 
     pub fn clear_screen(&mut self) {
