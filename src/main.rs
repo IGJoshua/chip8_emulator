@@ -1,3 +1,5 @@
+use chip8_emulator;
+
 fn main() {
-    println!("Hello, world!");
+    chip8_emulator::start_emulator();
 }
