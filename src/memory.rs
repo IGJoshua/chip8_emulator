@@ -1,3 +1,5 @@
+use crate::sprite;
+
 pub const MEMORY_SIZE: usize = 0xFFF;
 
 pub struct Memory {
@@ -7,8 +9,15 @@ pub struct Memory {
 
 impl Memory {
     pub fn new() -> Memory {
+        let mut bytes = [0; MEMORY_SIZE];
+        for (sprite_idx, sprite) in sprite::SPRITES.iter().enumerate() {
+            for (byte_idx, byte) in sprite.rows.iter().enumerate() {
+                bytes[sprite_idx * 5 + byte_idx] = *byte;
+            }
+        }
+
         Memory {
-            bytes: [0; MEMORY_SIZE],
+            bytes,
             size: MEMORY_SIZE,
         }
     }

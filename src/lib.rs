@@ -5,6 +5,7 @@
 mod cpu;
 mod io;
 mod memory;
+mod sprite;
 
 use cpu::Cpu;
 use io::{Display, Point};

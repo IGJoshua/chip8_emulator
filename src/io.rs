@@ -1,28 +1,9 @@
 use std::fmt;
-
-struct Sprite {
-    rows: [u8; 5],
-}
+use crate::sprite::Sprite;
 
 #[derive(Clone, Copy)]
 pub struct Point(pub u8, pub u8);
 
-const SPRITES: [Sprite; 0x10] = [Sprite { rows: [0xF0, 0x90, 0x90, 0x90, 0xF0], },
-                                 Sprite { rows: [0x20, 0x60, 0x20, 0x20, 0x70], },
-                                 Sprite { rows: [0xF0, 0x10, 0xF0, 0x80, 0xF0], },
-                                 Sprite { rows: [0xF0, 0x10, 0xF0, 0x10, 0xF0], },
-                                 Sprite { rows: [0x90, 0x90, 0xF0, 0x10, 0x10], },
-                                 Sprite { rows: [0xF0, 0x80, 0xF0, 0x10, 0xF0], },
-                                 Sprite { rows: [0xF0, 0x80, 0xF0, 0x90, 0xF0], },
-                                 Sprite { rows: [0xF0, 0x10, 0x20, 0x40, 0x40], },
-                                 Sprite { rows: [0xF0, 0x90, 0xF0, 0x90, 0xF0], },
-                                 Sprite { rows: [0xF0, 0x90, 0xF0, 0x10, 0xF0], },
-                                 Sprite { rows: [0xF0, 0x90, 0xF0, 0x90, 0x90], },
-                                 Sprite { rows: [0xE0, 0x90, 0xE0, 0x90, 0xE0], },
-                                 Sprite { rows: [0xF0, 0x80, 0x80, 0x80, 0xF0], },
-                                 Sprite { rows: [0xE0, 0x90, 0x90, 0x90, 0xE0], },
-                                 Sprite { rows: [0xF0, 0x80, 0xF0, 0x80, 0xF0], },
-                                 Sprite { rows: [0xF0, 0x80, 0xF0, 0x80, 0x80], },];
 const DISPLAY_WIDTH: usize = 8;
 const DISPLAY_HEIGHT: usize = 32;
 
@@ -37,12 +18,11 @@ impl Display {
         }
     }
 
-    pub fn draw_sprite(&mut self, point: Point, sprite: usize) {
-        assert!(sprite < 0x10);
+    pub fn draw_sprite(&mut self, point: Point, sprite: Sprite) {
         assert!(point.1 + 5 < DISPLAY_HEIGHT as u8);
         assert!(point.0 < DISPLAY_WIDTH as u8 * 8);
 
-        let enumeration = SPRITES[sprite].rows.iter().enumerate();
+        let enumeration = sprite.rows.iter().enumerate();
         if point.0 % 8 == 0 {
             let col = point.0 / 8;
             for (index, row) in enumeration {
