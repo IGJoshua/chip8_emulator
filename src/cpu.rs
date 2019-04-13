@@ -18,13 +18,13 @@ struct Registers {
     sp: u8,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Vx(u8);
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct VxIdx(u8);
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct Addr(u16);
 
 pub struct Cpu {
@@ -33,6 +33,7 @@ pub struct Cpu {
     registers: Registers,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Instruction {
     Sys(Addr),
     Cls,
