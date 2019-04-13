@@ -5,3 +5,4 @@ authors = ["Joshua Suskalo <joshua@suskalo.org>"]
 edition = "2018"
 
 [dependencies]
+rand = "0.6.5"
