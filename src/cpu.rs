@@ -35,9 +35,9 @@ pub struct Cpu {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Instruction {
-    Sys(Addr),
     Cls,
     Ret,
+    Sys(Addr),
     Jmp(Addr),
     Call(Addr),
     SkipEq(VxIdx, u8),
@@ -95,6 +95,54 @@ impl Cpu {
     }
 }
 
+impl Instruction {
+    fn read_instruction(high_byte: u8, low_byte: u8) -> Option<Instruction> {
+        let nibble1 = (high_byte >> 4) & 0x0F;
+        let nibble2 = high_byte & 0x0F;
+        let nibble3 = (low_byte >> 4) & 0x0F;
+        let nibble4 = low_byte & 0x0F;
+
+        match (nibble1, nibble2, nibble3, nibble4) {
+            (0x0, 0x0, 0xE, 0x0) => Some(Instruction::Cls),
+            (0x0, 0x0, 0xE, 0xE) => Some(Instruction::Ret),
+            (0x0, a, b, c) => Some(Instruction::Sys(Addr::new(a, b, c))),
+            (0x1, a, b, c) => Some(Instruction::Jmp(Addr::new(a, b, c))),
+            (0x2, a, b, c) => Some(Instruction::Call(Addr::new(a, b, c))),
+            (0x3, x, hk, lk) => Some(Instruction::SkipEq(VxIdx(x), construct_byte(hk, lk))),
+            (0x4, x, hk, lk) => Some(Instruction::SkipNotEq(VxIdx(x), construct_byte(hk, lk))),
+            (0x5, x, y, 0x0) => Some(Instruction::SkipEqVx(VxIdx(x), VxIdx(y))),
+            (0x6, x, hk, lk) => Some(Instruction::Load(VxIdx(x), construct_byte(hk, lk))),
+            (0x7, x, hk, lk) => Some(Instruction::Add(VxIdx(x), construct_byte(hk, lk))),
+            (0x8, x, y, 0x0) => Some(Instruction::AddVx(VxIdx(x), VxIdx(y))),
+            (0x8, x, y, 0x1) => Some(Instruction::Or(VxIdx(x), VxIdx(y))),
+            (0x8, x, y, 0x2) => Some(Instruction::And(VxIdx(x), VxIdx(y))),
+            (0x8, x, y, 0x3) => Some(Instruction::XOr(VxIdx(x), VxIdx(y))),
+            (0x8, x, y, 0x4) => Some(Instruction::AddVx(VxIdx(x), VxIdx(y))),
+            (0x8, x, y, 0x5) => Some(Instruction::SubVx(VxIdx(x), VxIdx(y))),
+            (0x8, x, _, 0x6) => Some(Instruction::ShiftRight(VxIdx(x))),
+            (0x8, x, y, 0x7) => Some(Instruction::SubN(VxIdx(x), VxIdx(y))),
+            (0x8, x, _, 0xE) => Some(Instruction::ShiftLeft(VxIdx(x))),
+            (0x9, x, y, 0x0) => Some(Instruction::SkipNextEq(VxIdx(x), VxIdx(y))),
+            (0xA, a, b, c) => Some(Instruction::LoadI(Addr::new(a, b, c))),
+            (0xB, a, b, c) => Some(Instruction::JmpV0(Addr::new(a, b, c))),
+            (0xC, x, hk, lk) => Some(Instruction::Rand(VxIdx(x), construct_byte(hk, lk))),
+            (0xD, x, y, k) => Some(Instruction::Draw(VxIdx(x), VxIdx(y), k)),
+            (0xE, x, 0x9, 0xE) => Some(Instruction::SkipKeyPressed(VxIdx(x))),
+            (0xE, x, 0xA, 0x1) => Some(Instruction::SkipKeyNotPressed(VxIdx(x))),
+            (0xF, x, 0x0, 0x7) => Some(Instruction::LoadDelay(VxIdx(x))),
+            (0xF, x, 0x0, 0xA) => Some(Instruction::LoadKey(VxIdx(x))),
+            (0xF, x, 0x1, 0x5) => Some(Instruction::SetDelay(VxIdx(x))),
+            (0xF, x, 0x1, 0x8) => Some(Instruction::SetSound(VxIdx(x))),
+            (0xF, x, 0x1, 0xE) => Some(Instruction::AddI(VxIdx(x))),
+            (0xF, x, 0x2, 0x9) => Some(Instruction::LoadFont(VxIdx(x))),
+            (0xF, x, 0x3, 0x3) => Some(Instruction::LoadBcd(VxIdx(x))),
+            (0xF, x, 0x5, 0x5) => Some(Instruction::StoreRegisters(VxIdx(x))),
+            (0xF, x, 0x6, 0x5) => Some(Instruction::LoadRegisters(VxIdx(x))),
+            _ => None,
+        }
+    }
+}
+
 fn construct_byte(high_nibble: u8, low_nibble: u8) -> u8 {
     ((high_nibble & 0x0F) << 4) | (low_nibble & 0x0F)
 }
@@ -106,5 +154,10 @@ mod test {
     #[test]
     fn test_construct_byte() {
         assert_eq!(0x12, construct_byte(0x1, 0x2));
+    }
+
+    #[test]
+    fn test_read_instruction() {
+        assert_eq!(Instruction::Load(VxIdx(2), 7), Instruction::read_instruction(0x62, 0x7).unwrap());
     }
 }
