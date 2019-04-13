@@ -7,7 +7,7 @@ mod io;
 mod memory;
 
 use cpu::Cpu;
-use io::Display;
+use io::{Display, Point};
 use memory::Memory;
 
 use std::rc::Rc;
@@ -15,6 +15,6 @@ use std::cell::RefCell;
 
 pub fn start_emulator() {
     let ram = Memory::new();
-    let display = Display::new();
-    let cpu = Cpu::new(ram, Rc::new(RefCell::new(display)));
+    let display = Rc::new(RefCell::new(Display::new()));
+    let cpu = Cpu::new(ram, Rc::clone(&display));
 }
