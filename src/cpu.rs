@@ -94,3 +94,17 @@ impl Cpu {
         }
     }
 }
+
+fn construct_byte(high_nibble: u8, low_nibble: u8) -> u8 {
+    ((high_nibble & 0x0F) << 4) | (low_nibble & 0x0F)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_construct_byte() {
+        assert_eq!(0x12, construct_byte(0x1, 0x2));
+    }
+}
