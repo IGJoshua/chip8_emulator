@@ -72,6 +72,12 @@ enum Instruction {
     LoadRegisters(VxIdx),
 }
 
+impl Addr {
+    fn new(nibble1: u8, nibble2: u8, nibble3: u8) -> Addr {
+        Addr(((nibble1 as u16) << 8) | ((nibble2 as u16) << 4) | nibble3 as u16)
+    }
+}
+
 impl Cpu {
     pub fn new(ram: Memory, display: Rc<RefCell<Display>>) -> Cpu {
         Cpu {
