@@ -9,7 +9,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 const STACK_TOP: usize = 0x1FF;
-const PROGRAM_START: usize = 0x200;
+pub const PROGRAM_START: usize = 0x200;
 const ETI_600_START: usize = 0x600;
 const NUM_REGISTERS: usize = 0x10;
 
