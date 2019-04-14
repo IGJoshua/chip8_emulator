@@ -97,6 +97,15 @@ impl Cpu {
         }
     }
 
+    pub fn load_next_instruction(&mut self) -> Instruction {
+        let mut instr: [u8; 2] = [0; 2];
+        self.ram.read(self.registers.pc as usize, &mut instr);
+        self.registers.pc += 2;
+
+        // TODO(Joshua): Proper error handling, or just surfacing the option
+        Instruction::read_instruction(instr[0], instr[1]).unwrap()
+    }
+
     pub fn execute_instruction(&mut self, instr: Instruction) {
         match instr {
             Instruction::Cls => {
