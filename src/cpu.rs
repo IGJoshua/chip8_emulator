@@ -81,7 +81,7 @@ impl Addr {
 }
 
 impl Cpu {
-    pub fn new(ram: Memory, display: Rc<RefCell<Display>>) -> Cpu {
+    pub fn new(ram: Memory, display: Rc<RefCell<Display>>, eti_mode: bool) -> Cpu {
         Cpu {
             ram,
             display,
@@ -90,7 +90,7 @@ impl Cpu {
                 i: 0,
                 delay: 0,
                 sound: 0,
-                pc: 0,
+                pc: if eti_mode { ETI_600_START as u16 } else { PROGRAM_START as u16 },
                 sp: 0,
             },
             rng: rand::thread_rng(),
