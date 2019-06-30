@@ -1,3 +1,7 @@
+use processing;
+use processing::errors::ProcessingErr;
+use processing::{Screen};
+use processing::shapes::rect::Rect;
 use std::fmt;
 use crate::sprite::Sprite;
 
@@ -65,10 +69,6 @@ impl Display {
             }
         }
     }
-
-    pub fn flip(&self) {
-        println!("{0}[2J{0}[H{1}", 27 as char, self);
-    }
 }
 
 impl fmt::Display for Display {
@@ -84,5 +84,81 @@ impl fmt::Display for Display {
         }
 
         Ok(())
+    }
+}
+
+const SCREEN_WIDTH: u32 = 1280;
+const SCREEN_HEIGHT: u32 = 720;
+
+const COL_SIZE: f64 = (SCREEN_WIDTH as f64 / (DISPLAY_WIDTH * 8) as f64) / SCREEN_WIDTH as f64;
+const ROW_SIZE: f64 = (SCREEN_HEIGHT as f64 / DISPLAY_HEIGHT as f64) / SCREEN_HEIGHT as f64;
+
+pub struct Window<'a> {
+    screen: Screen<'a>,
+    rect: Rect<'a>,
+}
+
+impl <'a> Window<'a> {
+    pub fn new() -> Window<'a> {
+        let mut screen = Screen::new(
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            false,
+            true,
+            true,
+        ).unwrap();
+
+        screen.fill(&[1.], &[1.], &[1.], &[1.],);
+        screen.fill_on();
+        screen.stroke_off();
+        screen.background(0., 0., 0., 1.,);
+
+        let rect = Rect::new(
+            &screen,
+            &[0.],
+            &[0.],
+            &[0.],
+            &[COL_SIZE * 2.1],
+            &[ROW_SIZE * 2.2],
+        ).unwrap();
+
+        Window {
+            screen,
+            rect,
+        }
+    }
+
+    pub fn draw_display(&mut self, display: &Display) -> Result<(), ProcessingErr> {
+        let screen = &mut self.screen;
+        let rect = &self.rect;
+
+        screen.reset_matrix();
+        screen.translate(
+            -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32,
+            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32,
+            0.,
+        );
+        for (row_idx, row) in display.bytes.iter().rev().enumerate() {
+            for (col_idx, col) in row.iter().enumerate() {
+                for idx in 0..8 {
+                    screen.translate(
+                        COL_SIZE as f32 * 2.,
+                        0.,
+                        0.,
+                    );
+                    let bool = ((col >> 7 - idx) & 0x1u8) == 1u8;
+                    if bool {
+                        screen.draw(&self.rect)?;
+                    }
+                }
+            }
+            screen.translate(
+                -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32 * 2.,
+                ROW_SIZE as f32 * 2.,
+                0.,
+            );
+        }
+
+        screen.reveal()
     }
 }
