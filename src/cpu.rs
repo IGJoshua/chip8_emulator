@@ -86,7 +86,11 @@ impl Cpu {
                 i: 0,
                 delay: 0,
                 sound: 0,
-                pc: if eti_mode { ETI_600_START as u16 } else { PROGRAM_START as u16 },
+                pc: if eti_mode {
+                    ETI_600_START as u16
+                } else {
+                    PROGRAM_START as u16
+                },
                 sp: 0,
             },
             rng: rand::thread_rng(),
@@ -97,123 +101,111 @@ impl Cpu {
         match instr {
             Instruction::Cls => {
                 display.clear_screen();
-            },
+            }
             Instruction::Ret => {
                 self.registers.pc = self.stack_pop(ram);
-            },
-            Instruction::Sys(_) => {},
+            }
+            Instruction::Sys(_) => {}
             Instruction::Jmp(addr) => {
                 self.registers.pc = addr.0;
-            },
+            }
             Instruction::Call(addr) => {
                 self.stack_push(ram, self.registers.pc);
                 self.registers.pc = addr.0;
-            },
+            }
             Instruction::SkipEq(idx, byte) => {
                 if self.registers.vx[idx.0 as usize] == byte {
                     self.registers.pc += 2;
                 }
-            },
+            }
             Instruction::SkipNotEq(idx, byte) => {
                 if self.registers.vx[idx.0 as usize] != byte {
                     self.registers.pc += 2;
                 }
-            },
+            }
             Instruction::SkipEqVx(x, y) => {
-                if self.registers.vx[x.0 as usize] ==
-                    self.registers.vx[y.0 as usize]
-                {
+                if self.registers.vx[x.0 as usize] == self.registers.vx[y.0 as usize] {
                     self.registers.pc += 2;
                 }
-            },
+            }
             Instruction::Load(idx, byte) => {
                 self.registers.vx[idx.0 as usize] = byte;
-            },
+            }
             Instruction::Add(idx, byte) => {
                 self.registers.vx[idx.0 as usize] += byte;
-            },
+            }
             Instruction::LoadVx(x, y) => {
-                self.registers.vx[x.0 as usize] =
-                    self.registers.vx[y.0 as usize];
-            },
+                self.registers.vx[x.0 as usize] = self.registers.vx[y.0 as usize];
+            }
             Instruction::Or(x, y) => {
-                self.registers.vx[x.0 as usize] |=
-                    self.registers.vx[y.0 as usize];
-            },
+                self.registers.vx[x.0 as usize] |= self.registers.vx[y.0 as usize];
+            }
             Instruction::And(x, y) => {
-                self.registers.vx[x.0 as usize] &=
-                    self.registers.vx[y.0 as usize];
-            },
+                self.registers.vx[x.0 as usize] &= self.registers.vx[y.0 as usize];
+            }
             Instruction::XOr(x, y) => {
-                self.registers.vx[x.0 as usize] ^=
-                    self.registers.vx[y.0 as usize];
-            },
+                self.registers.vx[x.0 as usize] ^= self.registers.vx[y.0 as usize];
+            }
             Instruction::AddVx(x, y) => {
-                let result = self.registers.vx[x.0 as usize] as u16
-                    + self.registers.vx[y.0 as usize] as u16;
+                let result =
+                    self.registers.vx[x.0 as usize] as u16 + self.registers.vx[y.0 as usize] as u16;
                 let overflow = (result >> 8) as u8 != 0;
 
                 self.registers.vx[x.0 as usize] = (result & 0xFF) as u8;
                 self.registers.vx[0xF] = if overflow { 1 } else { 0 };
-            },
+            }
             Instruction::SubVx(x, y) => {
-                self.registers.vx[0xF] = if self.registers.vx[x.0 as usize]
-                    > self.registers.vx[y.0 as usize]
-                {
-                    1
-                } else {
-                    0
-                };
-                self.registers.vx[x.0 as usize] -= self.registers.vx[y.0 as usize];
-            },
-            Instruction::ShiftRight(idx) => {
                 self.registers.vx[0xF] =
-                    if self.registers.vx[idx.0 as usize] & 0x1 == 1 {
+                    if self.registers.vx[x.0 as usize] > self.registers.vx[y.0 as usize] {
                         1
                     } else {
                         0
                     };
+                self.registers.vx[x.0 as usize] -= self.registers.vx[y.0 as usize];
+            }
+            Instruction::ShiftRight(idx) => {
+                self.registers.vx[0xF] = if self.registers.vx[idx.0 as usize] & 0x1 == 1 {
+                    1
+                } else {
+                    0
+                };
 
                 self.registers.vx[idx.0 as usize] >>= 1;
-            },
+            }
             Instruction::SubN(x, y) => {
-                self.registers.vx[0xF] = if self.registers.vx[y.0 as usize]
-                    > self.registers.vx[x.0 as usize]
-                {
-                    1
-                } else {
-                    0
-                };
-
-                self.registers.vx[x.0 as usize] = self.registers.vx[y.0 as usize]
-                    - self.registers.vx[y.0 as usize];
-            },
-            Instruction::ShiftLeft(idx) => {
                 self.registers.vx[0xF] =
-                    if (self.registers.vx[idx.0 as usize] >> 7 & 0x1) == 1 {
+                    if self.registers.vx[y.0 as usize] > self.registers.vx[x.0 as usize] {
                         1
                     } else {
                         0
                     };
 
+                self.registers.vx[x.0 as usize] =
+                    self.registers.vx[y.0 as usize] - self.registers.vx[y.0 as usize];
+            }
+            Instruction::ShiftLeft(idx) => {
+                self.registers.vx[0xF] = if (self.registers.vx[idx.0 as usize] >> 7 & 0x1) == 1 {
+                    1
+                } else {
+                    0
+                };
+
                 self.registers.vx[idx.0 as usize] <<= 1;
-            },
+            }
             Instruction::SkipNotEqVx(x, y) => {
-                if self.registers.vx[x.0 as usize]
-                    != self.registers.vx[y.0 as usize]
-                {
+                if self.registers.vx[x.0 as usize] != self.registers.vx[y.0 as usize] {
                     self.registers.pc += 2;
                 }
-            },
+            }
             Instruction::LoadI(addr) => {
                 self.registers.i = addr.0;
-            },
+            }
             Instruction::JmpV0(addr) => {
                 self.registers.pc = self.registers.vx[0] as u16 + addr.0;
-            },
+            }
             Instruction::Rand(idx, mask) => {
                 self.registers.vx[idx.0 as usize] = (self.rng.gen_range(0, 256) as u8) & mask;
-            },
+            }
             Instruction::Draw(x, y, bytes) => {
                 let x = self.registers.vx[x.0 as usize];
                 let y = self.registers.vx[y.0 as usize];
@@ -233,16 +225,17 @@ impl Cpu {
             //},
             Instruction::SetDelay(idx) => {
                 self.registers.delay = self.registers.vx[idx.0 as usize];
-            },
+            }
             Instruction::SetSound(idx) => {
                 self.registers.sound = self.registers.vx[idx.0 as usize];
-            },
+            }
             Instruction::AddI(idx) => {
                 self.registers.i += self.registers.vx[idx.0 as usize] as u16;
-            },
+            }
             Instruction::LoadFont(idx) => {
-                self.registers.i = sprite::SPRITE_SIZE as u16 * self.registers.vx[idx.0 as usize] as u16;
-            },
+                self.registers.i =
+                    sprite::SPRITE_SIZE as u16 * self.registers.vx[idx.0 as usize] as u16;
+            }
             Instruction::LoadBcd(idx) => {
                 let mut bcd = [0; 3];
                 let num = self.registers.vx[idx.0 as usize];
@@ -250,14 +243,14 @@ impl Cpu {
                 bcd[1] = (num / 10) % 10;
                 bcd[2] = num % 10;
                 ram.write(self.registers.i as usize, &bcd[..]);
-            },
+            }
             Instruction::StoreRegisters(idx) => {
                 let mut buf = vec![0; idx.0 as usize];
                 for i in 0..idx.0 as usize {
                     buf[i] = self.registers.vx[i];
                 }
                 ram.write(self.registers.i as usize, &buf[..]);
-            },
+            }
             Instruction::LoadRegisters(idx) => {
                 let mut buf = vec![0; idx.0 as usize];
                 ram.read(self.registers.i as usize, &mut buf[..]);
@@ -271,18 +264,18 @@ impl Cpu {
 
     fn stack_pop(&mut self, ram: &Memory) -> u16 {
         let mut addr: [u8; 2] = [0; 2];
-        ram.read(STACK_TOP - (self.registers.i as usize * 2) - 1,
-                      &mut addr[..]);
+        ram.read(
+            STACK_TOP - (self.registers.i as usize * 2) - 1,
+            &mut addr[..],
+        );
         self.registers.i -= 1;
         construct_short(addr[0], addr[1])
     }
 
     fn stack_push(&mut self, ram: &mut Memory, addr: u16) {
-        let addr: [u8; 2] = [((addr >> 8) & 0xFF) as u8,
-                             (addr & 0xFF) as u8];
+        let addr: [u8; 2] = [((addr >> 8) & 0xFF) as u8, (addr & 0xFF) as u8];
         self.registers.i += 1;
-        ram.write(STACK_TOP - (self.registers.i as usize * 2) - 1,
-                       &addr[..]);
+        ram.write(STACK_TOP - (self.registers.i as usize * 2) - 1, &addr[..]);
     }
 }
 
@@ -294,7 +287,6 @@ pub fn load_next_instruction(cpu: &mut Cpu, ram: &Memory) -> Instruction {
     // TODO(Joshua): Proper error handling, or just surfacing the option
     read_instruction(instr[0], instr[1]).unwrap()
 }
-
 
 fn read_instruction(high_byte: u8, low_byte: u8) -> Option<Instruction> {
     let nibble1 = (high_byte >> 4) & 0x0F;
@@ -361,6 +353,9 @@ mod test {
 
     #[test]
     fn test_read_instruction() {
-        assert_eq!(Instruction::Load(Vx(2), 7), read_instruction(0x62, 0x7).unwrap());
+        assert_eq!(
+            Instruction::Load(Vx(2), 7),
+            read_instruction(0x62, 0x7).unwrap()
+        );
     }
 }

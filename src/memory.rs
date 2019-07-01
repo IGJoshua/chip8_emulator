@@ -24,16 +24,16 @@ impl Memory {
 
     pub fn write(&mut self, address: usize, to_write: &[u8]) {
         assert!(is_valid_address(address + to_write.len()));
-        for (index, byte) in to_write.iter().enumerate()
-        {
+        for (index, byte) in to_write.iter().enumerate() {
             self.bytes[address + index] = *byte;
         }
     }
 
     pub fn read(&self, address: usize, buffer: &mut [u8]) {
         assert!(is_valid_address(address + buffer.len()));
-        for (index, byte) in self.bytes[address..address+buffer.len()]
-            .iter().enumerate()
+        for (index, byte) in self.bytes[address..address + buffer.len()]
+            .iter()
+            .enumerate()
         {
             buffer[index] = *byte;
         }

@@ -1,9 +1,9 @@
+use crate::sprite::Sprite;
 use processing;
 use processing::errors::ProcessingErr;
-use processing::{Screen};
 use processing::shapes::rect::Rect;
+use processing::Screen;
 use std::fmt;
-use crate::sprite::Sprite;
 
 #[derive(Clone, Copy)]
 pub struct Point(pub u8, pub u8);
@@ -29,7 +29,7 @@ impl Display {
         if point.0 % 8 == 0 {
             let col = point.0 as usize / 8;
             for (index, row) in enumeration {
-                let row_idx =(point.1 as usize + index) % DISPLAY_HEIGHT;
+                let row_idx = (point.1 as usize + index) % DISPLAY_HEIGHT;
                 let byte = &mut self.bytes[row_idx][col];
                 if *byte & row != 0 {
                     res = true;
@@ -41,7 +41,7 @@ impl Display {
             let first_offset = point.0 % 8;
             let last_offset = 8 - first_offset;
             for (index, row) in enumeration {
-                let row_idx =(point.1 as usize + index) % DISPLAY_HEIGHT;
+                let row_idx = (point.1 as usize + index) % DISPLAY_HEIGHT;
 
                 let first_byte = *row >> first_offset;
                 let last_byte = *row << last_offset;
@@ -98,20 +98,14 @@ pub struct Window<'a> {
     rect: Rect<'a>,
 }
 
-impl <'a> Window<'a> {
+impl<'a> Window<'a> {
     pub fn new() -> Window<'a> {
-        let mut screen = Screen::new(
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-            false,
-            true,
-            true,
-        ).unwrap();
+        let mut screen = Screen::new(SCREEN_WIDTH, SCREEN_HEIGHT, false, true, true).unwrap();
 
-        screen.fill(&[1.], &[1.], &[1.], &[1.],);
+        screen.fill(&[1.], &[1.], &[1.], &[1.]);
         screen.fill_on();
         screen.stroke_off();
-        screen.background(0., 0., 0., 1.,);
+        screen.background(0., 0., 0., 1.);
 
         let rect = Rect::new(
             &screen,
@@ -120,7 +114,8 @@ impl <'a> Window<'a> {
             &[0.],
             &[COL_SIZE * 2.1],
             &[ROW_SIZE * 2.2],
-        ).unwrap();
+        )
+        .unwrap();
 
         Window {
             screen,
@@ -141,11 +136,7 @@ impl <'a> Window<'a> {
         for (row_idx, row) in display.bytes.iter().rev().enumerate() {
             for (col_idx, col) in row.iter().enumerate() {
                 for idx in 0..8 {
-                    screen.translate(
-                        COL_SIZE as f32 * 2.,
-                        0.,
-                        0.,
-                    );
+                    screen.translate(COL_SIZE as f32 * 2., 0., 0.);
                     let bool = ((col >> 7 - idx) & 0x1u8) == 1u8;
                     if bool {
                         screen.draw(&self.rect)?;

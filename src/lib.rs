@@ -7,7 +7,7 @@ mod io;
 mod memory;
 mod sprite;
 
-use cpu::{Cpu, load_next_instruction};
+use cpu::{load_next_instruction, Cpu};
 use io::{Display, Point, Window};
 use memory::Memory;
 
@@ -39,6 +39,9 @@ pub fn start_emulator(filename: String) {
 
         window.draw_display(&display).unwrap();
 
-        std::thread::sleep(std::time::Duration::new(0, NANOS_PER_MILLI * MILLIS_PER_INSTRUCTION));
+        std::thread::sleep(std::time::Duration::new(
+            0,
+            NANOS_PER_MILLI * MILLIS_PER_INSTRUCTION,
+        ));
     }
 }
