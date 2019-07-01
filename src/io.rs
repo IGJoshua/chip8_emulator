@@ -1,5 +1,8 @@
 use crate::sprite::Sprite;
 use processing;
+use processing::backend::glutin::glutin::{
+    ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent,
+};
 use processing::errors::ProcessingErr;
 use processing::shapes::rect::Rect;
 use processing::Screen;
@@ -93,9 +96,18 @@ const SCREEN_HEIGHT: u32 = 720;
 const COL_SIZE: f64 = (SCREEN_WIDTH as f64 / (DISPLAY_WIDTH * 8) as f64) / SCREEN_WIDTH as f64;
 const ROW_SIZE: f64 = (SCREEN_HEIGHT as f64 / DISPLAY_HEIGHT as f64) / SCREEN_HEIGHT as f64;
 
+const NUM_KEYS: usize = 0x10;
+
+struct Key(processing::Key, bool);
+
+struct Keyboard {
+    keys: [Key; NUM_KEYS],
+}
+
 pub struct Window<'a> {
     screen: Screen<'a>,
     rect: Rect<'a>,
+    keyboard: Keyboard,
 }
 
 impl<'a> Window<'a> {
@@ -117,13 +129,35 @@ impl<'a> Window<'a> {
         )
         .unwrap();
 
+        let keyboard = Keyboard {
+            keys: [
+                Key(processing::Key::Num1, false),
+                Key(processing::Key::Num2, false),
+                Key(processing::Key::Num3, false),
+                Key(processing::Key::Q, false),
+                Key(processing::Key::W, false),
+                Key(processing::Key::E, false),
+                Key(processing::Key::A, false),
+                Key(processing::Key::S, false),
+                Key(processing::Key::D, false),
+                Key(processing::Key::X, false),
+                Key(processing::Key::Z, false),
+                Key(processing::Key::C, false),
+                Key(processing::Key::Num4, false),
+                Key(processing::Key::R, false),
+                Key(processing::Key::F, false),
+                Key(processing::Key::V, false),
+            ],
+        };
+
         Window {
             screen,
             rect,
+            keyboard,
         }
     }
 
-    pub fn draw_display(&mut self, display: &Display) -> Result<(), ProcessingErr> {
+    pub fn draw_display(&mut self, display: &Display) -> Result<Vec<Event>, ProcessingErr> {
         let screen = &mut self.screen;
         let rect = &self.rect;
 
@@ -150,6 +184,55 @@ impl<'a> Window<'a> {
             );
         }
 
-        screen.reveal()
+        screen.reveal_with_events()
+    }
+
+    pub fn process_events(&mut self, events: Vec<Event>) {
+        let screen = &mut self.screen;
+
+        for event in events {
+            match event {
+                Event::WindowEvent { event, .. } => match event {
+                    WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                virtual_keycode,
+                                state,
+                                ..
+                            },
+                        ..
+                    } => {
+                        let state = match state {
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        };
+
+                        for key in self.keyboard.keys.iter_mut() {
+                            let keycode: VirtualKeyCode = key.0.into();
+                            if keycode == virtual_keycode.unwrap() {
+                                key.1 = state;
+                            }
+                        }
+                    }
+                    _ => (),
+                },
+                _ => (),
+            }
+        }
+    }
+
+    pub fn wait_for_key(&mut self) -> u8 {
+        loop {
+            for (idx, Key(key, ..)) in self.keyboard.keys.iter().enumerate() {
+                if self.screen.key_press(*key) {
+                    return idx as u8;
+                }
+            }
+            self.screen.poll_events();
+        }
+    }
+
+    pub fn key_down(&self, key: u8) -> bool {
+        self.keyboard.keys[key as usize].1
     }
 }

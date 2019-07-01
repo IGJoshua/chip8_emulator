@@ -34,10 +34,15 @@ pub fn start_emulator(filename: String) {
     let mut cpu = Cpu::new(false);
 
     loop {
-        let instr = load_next_instruction(&mut cpu, &ram);
-        cpu.execute_instruction(instr, &mut ram, &mut display);
+        // TODO(Joshua): Make this two loops, outer going at 60 hz, inner
+        // performing as many instructions as are required to bring the executed
+        // instructions up to the instructions/second count passed in
 
-        window.draw_display(&display).unwrap();
+        let instr = load_next_instruction(&mut cpu, &ram);
+        cpu.execute_instruction(instr, &mut ram, &mut display, &mut window);
+
+        let events = window.draw_display(&display).unwrap();
+        window.process_events(events);
 
         std::thread::sleep(std::time::Duration::new(
             0,

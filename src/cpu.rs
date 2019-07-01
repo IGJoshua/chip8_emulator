@@ -1,12 +1,12 @@
+use crate::io;
+use crate::io::{Display, Window};
 use crate::memory;
 use crate::memory::Memory;
-use crate::io;
-use crate::io::Display;
 use crate::sprite;
 use rand;
 use rand::Rng;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 const STACK_TOP: usize = 0x1FF;
 pub const PROGRAM_START: usize = 0x200;
@@ -97,7 +97,13 @@ impl Cpu {
         }
     }
 
-    pub fn execute_instruction(&mut self, instr: Instruction, ram: &mut Memory, display: &mut Display) {
+    pub fn execute_instruction(
+        &mut self,
+        instr: Instruction,
+        ram: &mut Memory,
+        display: &mut Display,
+        window: &mut Window,
+    ) {
         match instr {
             Instruction::Cls => {
                 display.clear_screen();
@@ -213,16 +219,23 @@ impl Cpu {
                 ram.read(self.registers.i as usize, &mut rows[..]);
                 let sprite = sprite::Sprite { rows };
                 display.draw_sprite(io::Point(x, y), sprite);
-            },
-            //Instruction::SkipKeyPressed(idx) => {
-            //},
-            //Instruction::SkipKeyNotPressed(idx) => {
-            //},
+            }
+            Instruction::SkipKeyPressed(idx) => {
+                if window.key_down(idx.0) {
+                    self.registers.pc += 2;
+                }
+            }
+            Instruction::SkipKeyNotPressed(idx) => {
+                if !window.key_down(idx.0) {
+                    self.registers.pc += 2;
+                }
+            }
             Instruction::LoadDelay(idx) => {
                 self.registers.vx[idx.0 as usize] = self.registers.delay;
-            },
-            //Instruction::LoadKey(idx) => {
-            //},
+            }
+            Instruction::LoadKey(idx) => {
+                self.registers.vx[idx.0 as usize] = window.wait_for_key();
+            }
             Instruction::SetDelay(idx) => {
                 self.registers.delay = self.registers.vx[idx.0 as usize];
             }
@@ -258,7 +271,6 @@ impl Cpu {
                     self.registers.vx[i] = buf[i];
                 }
             }
-            _ => panic!("Attempted to execute instruction with no implementation!"),
         }
     }
 
