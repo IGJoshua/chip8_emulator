@@ -1,0 +1,12 @@
+#+TITLE:Chip-8 Emulator
+#+AUTHOR:Joshua Suskalo
+#+EMAIL:Joshua@suskalo.org
+#+STARTUP: indent hidestars align
+* Chip-8 Emulator
+This is an emulator for the [[https://en.wikipedia.org/wiki/CHIP-8][Chip-8 platform]] written in Rust. It's the first large project which I've taken on in Rust and is how I've learned the language.
+
+* Tooling
+I've also written some tools which can be used in combination with this emulator, listed below.
+
+** [[https://github.com/IGJoshua/chip8_assembler][Chip-8 Assembler]]
+I've written an assembler to create binaries which can be executed by this emulator, available at the above link.
