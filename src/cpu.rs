@@ -97,6 +97,15 @@ impl Cpu {
         }
     }
 
+    pub fn step_clocks(&mut self) {
+        if self.registers.delay > 0 {
+            self.registers.delay -= 1;
+        }
+        if self.registers.sound > 0 {
+            self.registers.sound -= 1;
+        }
+    }
+
     pub fn execute_instruction(
         &mut self,
         instr: Instruction,
