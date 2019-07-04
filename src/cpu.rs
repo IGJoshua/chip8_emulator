@@ -226,12 +226,12 @@ impl Cpu {
                 self.registers.vx[0xF as usize] = if collision { 1 } else { 0 };
             }
             Instruction::SkipKeyPressed(idx) => {
-                if window.key_down(idx.0) {
+                if window.key_down(self.registers.vx[idx.0 as usize]) {
                     self.registers.pc += 2;
                 }
             }
             Instruction::SkipKeyNotPressed(idx) => {
-                if !window.key_down(idx.0) {
+                if !window.key_down(self.registers.vx[idx.0 as usize]) {
                     self.registers.pc += 2;
                 }
             }
