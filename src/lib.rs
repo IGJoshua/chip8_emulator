@@ -17,11 +17,13 @@ use processing::Screen;
 use std::cell::RefCell;
 use std::fs;
 use std::rc::Rc;
+use std::thread::sleep;
+use std::time::{Duration, SystemTime};
 
-const NANOS_PER_MILLI: u32 = 1000000;
-const MILLIS_PER_INSTRUCTION: u32 = 16;
+const NANOS_PER_MILLI: u64 = 1000000;
+const NANOS_PER_SECOND: u64 = NANOS_PER_MILLI * 1000;
 
-pub fn start_emulator(filename: String) {
+pub fn start_emulator(filename: String, cycles_per_second: u64) {
     let mut ram = Memory::new();
 
     {
@@ -33,20 +35,36 @@ pub fn start_emulator(filename: String) {
     let mut display = Display::new();
     let mut cpu = Cpu::new(false);
 
-    loop {
-        // TODO(Joshua): Make this two loops, outer going at 60 hz, inner
-        // performing as many instructions as are required to bring the executed
-        // instructions up to the instructions/second count passed in
+    let iteration_duration = Duration::from_nanos(NANOS_PER_SECOND / 60);
+    let cycles_per_iteration = cycles_per_second / 60;
 
-        let instr = load_next_instruction(&mut cpu, &ram);
-        cpu.execute_instruction(instr, &mut ram, &mut display, &mut window);
+    println!("Desired millis per frame: {}", iteration_duration.as_millis());
+
+    let mut frame_start = SystemTime::now();
+    loop {
+        println!("Millis for last frame: {}", frame_start.elapsed().unwrap().as_millis());
+        frame_start = SystemTime::now();
+        //let frame_start_time = SystemTime::now();
+
+        for _ in 0..cycles_per_iteration + 1 {
+            let instr = load_next_instruction(&mut cpu, &ram);
+            cpu.execute_instruction(instr, &mut ram, &mut display, &mut window);
+        }
+
+        cpu.step_clocks();
+
+        println!("Millis for instruction execution: {}", frame_start.elapsed().unwrap().as_millis());
 
         let events = window.draw_display(&display).unwrap();
+        println!("Millis for window drawing: {}", frame_start.elapsed().unwrap().as_millis());
+
         window.process_events(events);
 
-        std::thread::sleep(std::time::Duration::new(
-            0,
-            NANOS_PER_MILLI * MILLIS_PER_INSTRUCTION,
-        ));
+        println!("Millis for events: {}", frame_start.elapsed().unwrap().as_millis());
+
+        let frame_duration = frame_start.elapsed().unwrap();
+        if frame_duration < iteration_duration {
+            sleep(iteration_duration - frame_duration);
+        }
     }
 }
