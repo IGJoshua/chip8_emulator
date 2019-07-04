@@ -131,6 +131,7 @@ impl<'a> Window<'a> {
 
         let keyboard = Keyboard {
             keys: [
+                Key(processing::Key::X, false),
                 Key(processing::Key::Num1, false),
                 Key(processing::Key::Num2, false),
                 Key(processing::Key::Num3, false),
@@ -140,7 +141,6 @@ impl<'a> Window<'a> {
                 Key(processing::Key::A, false),
                 Key(processing::Key::S, false),
                 Key(processing::Key::D, false),
-                Key(processing::Key::X, false),
                 Key(processing::Key::Z, false),
                 Key(processing::Key::C, false),
                 Key(processing::Key::Num4, false),
