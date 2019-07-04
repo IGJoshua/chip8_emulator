@@ -166,7 +166,7 @@ impl Cpu {
             Instruction::AddVx(x, y) => {
                 let result =
                     self.registers.vx[x.0 as usize] as u16 + self.registers.vx[y.0 as usize] as u16;
-                let overflow = (result >> 8) as u8 != 0;
+                let overflow = result > 0xFF;
 
                 self.registers.vx[x.0 as usize] = (result & 0xFF) as u8;
                 self.registers.vx[0xF] = if overflow { 1 } else { 0 };
@@ -208,7 +208,7 @@ impl Cpu {
                 }
             }
             Instruction::LoadI(addr) => {
-                self.registers.i = addr.0;
+                self.registers.i = addr.0 & 0x0FFF;
             }
             Instruction::JmpV0(addr) => {
                 self.registers.pc = self.registers.vx[0] as u16 + addr.0;
@@ -267,7 +267,7 @@ impl Cpu {
                 let mut bcd = [0; 3];
                 let num = self.registers.vx[idx.0 as usize];
                 bcd[0] = num / 100;
-                bcd[1] = (num / 10) % 10;
+                bcd[1] = (num % 100) / 10;
                 bcd[2] = num % 10;
                 ram.write(self.registers.i as usize, &bcd[..]);
             }
