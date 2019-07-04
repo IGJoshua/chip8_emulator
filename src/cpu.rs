@@ -7,6 +7,7 @@ use rand;
 use rand::Rng;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::u8;
 
 const STACK_TOP: usize = 0x1FF;
 pub const PROGRAM_START: usize = 0x200;
@@ -147,7 +148,7 @@ impl Cpu {
                 self.registers.vx[idx.0 as usize] = byte;
             }
             Instruction::Add(idx, byte) => {
-                self.registers.vx[idx.0 as usize] += byte;
+                self.registers.vx[idx.0 as usize] = self.registers.vx[idx.0 as usize].wrapping_add(byte);
             }
             Instruction::LoadVx(x, y) => {
                 self.registers.vx[x.0 as usize] = self.registers.vx[y.0 as usize];
@@ -176,7 +177,7 @@ impl Cpu {
                     } else {
                         0
                     };
-                self.registers.vx[x.0 as usize] -= self.registers.vx[y.0 as usize];
+                self.registers.vx[x.0 as usize] = self.registers.vx[x.0 as usize].wrapping_sub(self.registers.vx[y.0 as usize]);
             }
             Instruction::ShiftRight(idx) => {
                 self.registers.vx[0xF] = if self.registers.vx[idx.0 as usize] & 0x1 == 1 {
@@ -196,7 +197,7 @@ impl Cpu {
                     };
 
                 self.registers.vx[x.0 as usize] =
-                    self.registers.vx[y.0 as usize] - self.registers.vx[y.0 as usize];
+                    self.registers.vx[y.0 as usize].wrapping_sub(self.registers.vx[x.0 as usize]);
             }
             Instruction::ShiftLeft(idx) => {
                 self.registers.vx[0xF] = if (self.registers.vx[idx.0 as usize] >> 7 & 0x1) == 1 {
@@ -286,17 +287,17 @@ impl Cpu {
     fn stack_pop(&mut self, ram: &Memory) -> u16 {
         let mut addr: [u8; 2] = [0; 2];
         ram.read(
-            STACK_TOP - (self.registers.i as usize * 2) - 1,
+            STACK_TOP - (self.registers.sp as usize * 2) - 1,
             &mut addr[..],
         );
-        self.registers.i -= 1;
+        self.registers.sp -= 1;
         construct_short(addr[0], addr[1])
     }
 
     fn stack_push(&mut self, ram: &mut Memory, addr: u16) {
         let addr: [u8; 2] = [((addr >> 8) & 0xFF) as u8, (addr & 0xFF) as u8];
-        self.registers.i += 1;
-        ram.write(STACK_TOP - (self.registers.i as usize * 2) - 1, &addr[..]);
+        self.registers.sp += 1;
+        ram.write(STACK_TOP - (self.registers.sp as usize * 2) - 1, &addr[..]);
     }
 }
 
