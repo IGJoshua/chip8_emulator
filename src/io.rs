@@ -209,7 +209,7 @@ impl<'a> Window<'a> {
 
                         for key in self.keyboard.keys.iter_mut() {
                             let keycode: VirtualKeyCode = key.0.into();
-                            if keycode == virtual_keycode.unwrap() {
+                            if virtual_keycode.is_some() && keycode == virtual_keycode.unwrap() {
                                 key.1 = state;
                             }
                         }
