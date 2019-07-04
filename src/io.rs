@@ -125,7 +125,7 @@ impl<'a> Window<'a> {
             &[0.],
             &[0.],
             &[COL_SIZE * 2.1],
-            &[ROW_SIZE * 2.2],
+            &[ROW_SIZE * 4.0],
         )
         .unwrap();
 
