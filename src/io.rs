@@ -112,7 +112,7 @@ pub struct Window<'a> {
 
 impl<'a> Window<'a> {
     pub fn new() -> Window<'a> {
-        let mut screen = Screen::new(SCREEN_WIDTH, SCREEN_HEIGHT, false, true, true).unwrap();
+        let mut screen = Screen::new(SCREEN_WIDTH, SCREEN_HEIGHT, false, true, false).unwrap();
 
         screen.fill(&[1.], &[1.], &[1.], &[1.]);
         screen.fill_on();
@@ -161,27 +161,23 @@ impl<'a> Window<'a> {
         let screen = &mut self.screen;
         let rect = &self.rect;
 
-        screen.reset_matrix();
-        screen.translate(
-            -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32,
-            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32,
-            0.,
-        );
+        screen.background(0., 0., 0., 1.);
+
         for (row_idx, row) in display.bytes.iter().rev().enumerate() {
             for (col_idx, col) in row.iter().enumerate() {
                 for idx in 0..8 {
-                    screen.translate(COL_SIZE as f32 * 2., 0., 0.);
                     let bool = ((col >> 7 - idx) & 0x1u8) == 1u8;
                     if bool {
+                        screen.reset_matrix();
+                        screen.translate(
+                            -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32 + ((col_idx * 8 + idx) as f32 * COL_SIZE as f32 * 2.),
+                            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32 + (row_idx as f32 * ROW_SIZE as f32 * 2.),
+                            0.,
+                        );
                         screen.draw(&self.rect)?;
                     }
                 }
             }
-            screen.translate(
-                -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32 * 2.,
-                ROW_SIZE as f32 * 2.,
-                0.,
-            );
         }
 
         screen.reveal_with_events()
