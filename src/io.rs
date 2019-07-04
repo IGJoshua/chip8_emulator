@@ -171,7 +171,7 @@ impl<'a> Window<'a> {
                         screen.reset_matrix();
                         screen.translate(
                             -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32 + ((col_idx * 8 + idx) as f32 * COL_SIZE as f32 * 2.),
-                            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32 + (row_idx as f32 * ROW_SIZE as f32 * 2.),
+                            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32 + ((row_idx + 1) as f32 * ROW_SIZE as f32 * 2.),
                             0.,
                         );
                         screen.draw(&self.rect)?;
