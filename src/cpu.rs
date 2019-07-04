@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::u8;
 
-const STACK_TOP: usize = 0x1FF;
+const STACK_TOP: usize = 0x200;
 pub const PROGRAM_START: usize = 0x200;
 const ETI_600_START: usize = 0x600;
 const NUM_REGISTERS: usize = 0x10;
@@ -148,7 +148,8 @@ impl Cpu {
                 self.registers.vx[idx.0 as usize] = byte;
             }
             Instruction::Add(idx, byte) => {
-                self.registers.vx[idx.0 as usize] = self.registers.vx[idx.0 as usize].wrapping_add(byte);
+                self.registers.vx[idx.0 as usize] =
+                    self.registers.vx[idx.0 as usize].wrapping_add(byte);
             }
             Instruction::LoadVx(x, y) => {
                 self.registers.vx[x.0 as usize] = self.registers.vx[y.0 as usize];
@@ -177,14 +178,11 @@ impl Cpu {
                     } else {
                         0
                     };
-                self.registers.vx[x.0 as usize] = self.registers.vx[x.0 as usize].wrapping_sub(self.registers.vx[y.0 as usize]);
+                self.registers.vx[x.0 as usize] =
+                    self.registers.vx[x.0 as usize].wrapping_sub(self.registers.vx[y.0 as usize]);
             }
             Instruction::ShiftRight(idx) => {
-                self.registers.vx[0xF] = if self.registers.vx[idx.0 as usize] & 0x1 == 1 {
-                    1
-                } else {
-                    0
-                };
+                self.registers.vx[0xF] = self.registers.vx[idx.0 as usize] & 0x1;
 
                 self.registers.vx[idx.0 as usize] >>= 1;
             }
@@ -200,11 +198,7 @@ impl Cpu {
                     self.registers.vx[y.0 as usize].wrapping_sub(self.registers.vx[x.0 as usize]);
             }
             Instruction::ShiftLeft(idx) => {
-                self.registers.vx[0xF] = if (self.registers.vx[idx.0 as usize] >> 7 & 0x1) == 1 {
-                    1
-                } else {
-                    0
-                };
+                self.registers.vx[0xF] = self.registers.vx[idx.0 as usize] >> 7 & 0x1;
 
                 self.registers.vx[idx.0 as usize] <<= 1;
             }
@@ -228,7 +222,8 @@ impl Cpu {
                 let mut rows = vec![0; bytes as usize];
                 ram.read(self.registers.i as usize, &mut rows[..]);
                 let sprite = sprite::Sprite { rows };
-                display.draw_sprite(io::Point(x, y), sprite);
+                let collision = display.draw_sprite(io::Point(x, y), sprite);
+                self.registers.vx[0xF as usize] = if collision { 1 } else { 0 };
             }
             Instruction::SkipKeyPressed(idx) => {
                 if window.key_down(idx.0) {
@@ -253,7 +248,16 @@ impl Cpu {
                 self.registers.sound = self.registers.vx[idx.0 as usize];
             }
             Instruction::AddI(idx) => {
-                self.registers.i += self.registers.vx[idx.0 as usize] as u16;
+                self.registers.vx[0xF] =
+                    if self.registers.i as u32 + self.registers.vx[idx.0 as usize] as u32 > 0xFFF {
+                        1
+                    } else {
+                        0
+                    };
+                self.registers.i = self
+                    .registers
+                    .i
+                    .wrapping_add(self.registers.vx[idx.0 as usize] as u16);
             }
             Instruction::LoadFont(idx) => {
                 self.registers.i =
@@ -286,10 +290,7 @@ impl Cpu {
 
     fn stack_pop(&mut self, ram: &Memory) -> u16 {
         let mut addr: [u8; 2] = [0; 2];
-        ram.read(
-            STACK_TOP - (self.registers.sp as usize * 2) - 1,
-            &mut addr[..],
-        );
+        ram.read(STACK_TOP - (self.registers.sp as usize * 2), &mut addr[..]);
         self.registers.sp -= 1;
         construct_short(addr[0], addr[1])
     }
@@ -297,7 +298,7 @@ impl Cpu {
     fn stack_push(&mut self, ram: &mut Memory, addr: u16) {
         let addr: [u8; 2] = [((addr >> 8) & 0xFF) as u8, (addr & 0xFF) as u8];
         self.registers.sp += 1;
-        ram.write(STACK_TOP - (self.registers.sp as usize * 2) - 1, &addr[..]);
+        ram.write(STACK_TOP - (self.registers.sp as usize * 2), &addr[..]);
     }
 }
 
