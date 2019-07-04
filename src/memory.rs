@@ -1,6 +1,6 @@
 use crate::sprite;
 
-pub const MEMORY_SIZE: usize = 0xFFF;
+pub const MEMORY_SIZE: usize = 0x1000;
 
 pub struct Memory {
     bytes: [u8; MEMORY_SIZE],

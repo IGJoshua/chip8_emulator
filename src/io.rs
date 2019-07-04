@@ -33,7 +33,7 @@ impl Display {
             let col = point.0 as usize / 8;
             for (index, row) in enumeration {
                 let row_idx = (point.1 as usize + index) % DISPLAY_HEIGHT;
-                let byte = &mut self.bytes[row_idx][col];
+                let byte = &mut self.bytes[row_idx][col % DISPLAY_WIDTH];
                 if *byte & row != 0 {
                     res = true;
                 }
@@ -49,7 +49,7 @@ impl Display {
                 let first_byte = *row >> first_offset;
                 let last_byte = *row << last_offset;
 
-                let first_ref = &mut self.bytes[row_idx][col as usize];
+                let first_ref = &mut self.bytes[row_idx][col as usize % DISPLAY_WIDTH];
                 if *first_ref & first_byte != 0 {
                     res = true;
                 }
@@ -170,8 +170,10 @@ impl<'a> Window<'a> {
                     if bool {
                         screen.reset_matrix();
                         screen.translate(
-                            -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32 + ((col_idx * 8 + idx) as f32 * COL_SIZE as f32 * 2.),
-                            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32 + ((row_idx + 1) as f32 * ROW_SIZE as f32 * 2.),
+                            -(COL_SIZE * DISPLAY_WIDTH as f64 * 8.) as f32
+                                + ((col_idx * 8 + idx) as f32 * COL_SIZE as f32 * 2.),
+                            -(ROW_SIZE * DISPLAY_HEIGHT as f64) as f32
+                                + ((row_idx + 1) as f32 * ROW_SIZE as f32 * 2.),
                             0.,
                         );
                         screen.draw(&self.rect)?;
