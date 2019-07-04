@@ -272,16 +272,16 @@ impl Cpu {
                 ram.write(self.registers.i as usize, &bcd[..]);
             }
             Instruction::StoreRegisters(idx) => {
-                let mut buf = vec![0; idx.0 as usize];
-                for i in 0..idx.0 as usize {
+                let mut buf = vec![0; (idx.0 + 1) as usize];
+                for i in 0..(idx.0 + 1) as usize {
                     buf[i] = self.registers.vx[i];
                 }
                 ram.write(self.registers.i as usize, &buf[..]);
             }
             Instruction::LoadRegisters(idx) => {
-                let mut buf = vec![0; idx.0 as usize];
+                let mut buf = vec![0; (idx.0 + 1) as usize];
                 ram.read(self.registers.i as usize, &mut buf[..]);
-                for i in 0..idx.0 as usize {
+                for i in 0..(idx.0 + 1) as usize {
                     self.registers.vx[i] = buf[i];
                 }
             }
