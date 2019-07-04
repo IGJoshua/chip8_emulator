@@ -286,17 +286,17 @@ impl Cpu {
     fn stack_pop(&mut self, ram: &Memory) -> u16 {
         let mut addr: [u8; 2] = [0; 2];
         ram.read(
-            STACK_TOP - (self.registers.i as usize * 2) - 1,
+            STACK_TOP - (self.registers.sp as usize * 2) - 1,
             &mut addr[..],
         );
-        self.registers.i -= 1;
+        self.registers.sp -= 1;
         construct_short(addr[0], addr[1])
     }
 
     fn stack_push(&mut self, ram: &mut Memory, addr: u16) {
         let addr: [u8; 2] = [((addr >> 8) & 0xFF) as u8, (addr & 0xFF) as u8];
-        self.registers.i += 1;
-        ram.write(STACK_TOP - (self.registers.i as usize * 2) - 1, &addr[..]);
+        self.registers.sp += 1;
+        ram.write(STACK_TOP - (self.registers.sp as usize * 2) - 1, &addr[..]);
     }
 }
 
