@@ -328,7 +328,7 @@ fn read_instruction(high_byte: u8, low_byte: u8) -> Option<Instruction> {
         (0x5, x, y, 0x0) => Some(Instruction::SkipEqVx(Vx(x), Vx(y))),
         (0x6, x, hk, lk) => Some(Instruction::Load(Vx(x), construct_byte(hk, lk))),
         (0x7, x, hk, lk) => Some(Instruction::Add(Vx(x), construct_byte(hk, lk))),
-        (0x8, x, y, 0x0) => Some(Instruction::AddVx(Vx(x), Vx(y))),
+        (0x8, x, y, 0x0) => Some(Instruction::LoadVx(Vx(x), Vx(y))),
         (0x8, x, y, 0x1) => Some(Instruction::Or(Vx(x), Vx(y))),
         (0x8, x, y, 0x2) => Some(Instruction::And(Vx(x), Vx(y))),
         (0x8, x, y, 0x3) => Some(Instruction::XOr(Vx(x), Vx(y))),
